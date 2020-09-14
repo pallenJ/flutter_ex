@@ -63,3 +63,16 @@ Future<dynamic> postRequest(String url, {body}) async {
   r.raiseForStatus();
   return r.json();
 }
+
+Future<dynamic> patchRequest(String url, {body}) async {
+  var r = await Requests.patch(url,
+      body: body, bodyEncoding: RequestBodyEncoding.FormURLEncoded);
+  r.raiseForStatus();
+  return r.json();
+}
+
+Future<dynamic> deleteRequest(String url) async {
+  var r = await Requests.delete(url,);
+  r.raiseForStatus();
+  return r.json();
+}

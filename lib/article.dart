@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:http_ex/main.dart';
 import 'package:http_ex/methods.dart';
@@ -23,6 +21,7 @@ class ArticleDetail extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+
             Container(
               color: Colors.blue,
               child: Text(
@@ -57,17 +56,35 @@ class ArticleDetail extends StatelessWidget {
                     ),
                     textAlign: TextAlign.right,
                   ),
+                  Visibility(
+                    visible: articleInfo.updatedAt!=articleInfo.createdAt,
+                    child: Text(
+                      'created at ${DateTime.parse(articleInfo.updatedAt).toString()}',
+                      style: TextStyle(
+                        color: Colors.tealAccent,
+                        fontWeight: FontWeight.normal,
+                        fontSize: 13,
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
                 ],
               ),
             ),
+
             Container(
-              child: Padding(
-                padding: const EdgeInsets.all(15),
-                child:
-                    Text(articleInfo.content, style: TextStyle(fontSize: 17)),
+              child: Wrap(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(15),
+                    child:
+                        Text(articleInfo.content, style: TextStyle(fontSize: 17)),
+                  ),
+                ],
               ),
               decoration: BoxDecoration(
                   border: Border.all(width: 1, color: Colors.grey)),
+
             )
           ],
         ),
@@ -143,7 +160,7 @@ class _ArticleWriteState extends State<ArticleWrite> {
                     textColor: Colors.white,
                     color: Colors.lightBlue,
                     child: Text('ADD'),
-                    onPressed: () {
+                    onPressed: () async{
                       if (_titleController.text == null ||
                           _titleController.text.length == 0) {
                         scaffoldKey.currentState
@@ -157,12 +174,17 @@ class _ArticleWriteState extends State<ArticleWrite> {
                           ..showSnackBar(
                               SnackBar(content: Text('check content')));
                       } else {
-                        postRequest('$_baseURL/articles/add', body: {
+                        await postRequest('$_baseURL/articles/add', body: {
                           'title': _titleController.text,
                           'content': _contentController.text,
                         }).whenComplete(() {
-                          setFutureArticles(() => setState(() {}));
-                          Navigator.pop(context);
+                          mainScaffoldKey.currentState.setState(() {
+                            setFutureArticles(() =>setState(() {
+                              Navigator.pop(context);//제대로 동작안함;;
+                            }));
+                          });
+
+
                         });
                       }
                     },
@@ -175,7 +197,7 @@ class _ArticleWriteState extends State<ArticleWrite> {
   }
 }
 
-void writeArticlePageGo(scaffoldKey, BuildContext context) async {
+void writeArticlePageGo(scaffoldKey, BuildContext context,{Function fnc}) async {
   if (loginUser == null || loginUser.id == null) {
     loginPlease(scaffoldKey, context);
   } else {
@@ -183,8 +205,31 @@ void writeArticlePageGo(scaffoldKey, BuildContext context) async {
         context,
         MaterialPageRoute(
           builder: (context) => ArticleWrite(),
-        ));
+        )).then((value) {
+        fnc();
+    });
   }
+}
+
+  void setFutureArticles(Function fnc) {
+  futureArticles = [];
+  getJSONList('$_baseURL/articles', type: getResponse).then((e) {
+    e.forEach((elt) {
+      futureArticles.add(fetchArticle(elt));
+    });
+    futureArticles = List.from(futureArticles);
+  }).whenComplete(() {
+    fnc();
+    /*setState(() {
+      mainLoadCpt = true;
+    });*/
+  });
+}
+
+void deleteArticle(int _id, {Function fnc}) async {
+  var deleteRS = await  deleteRequest('$_baseURL/articles/$_id');
+  print(deleteRS);
+  fnc();
 }
 
 class Article {

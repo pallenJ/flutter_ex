@@ -168,13 +168,14 @@ void signInPageGo(scaffoldKey, BuildContext context) async {
   }
 }
 
-void loginPageGo(scaffoldKey, BuildContext context) async {
+void loginPageGo(scaffoldKey, BuildContext context,{Function fnc}) async {
   if (loginUser == null || loginUser.id == null) {
     await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => LoginPage(),
-        ));
+        )).then((value) => fnc());
+
   } else {
     scaffoldKey.currentState.showSnackBar(SnackBar(
       content: Text(
@@ -183,6 +184,7 @@ void loginPageGo(scaffoldKey, BuildContext context) async {
       ),
     ));
   }
+
 }
 
 void loginPlease(scaffoldKey, BuildContext context)async{
@@ -204,8 +206,9 @@ void loginPlease(scaffoldKey, BuildContext context)async{
   ));
 }
 
-void logout(scaffoldKey, BuildContext context) async {
+void logout(scaffoldKey, BuildContext context, {Function fnc}) async {
   print('logout');
+
   getRequestVoid('$_baseURL/users/logout', fnc: () async {
     loginUser = null;
     scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -224,5 +227,6 @@ void logout(scaffoldKey, BuildContext context) async {
         },
       ),
     ));
+    fnc();
   });
 }
