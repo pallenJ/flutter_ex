@@ -61,34 +61,32 @@ class MyHomePage extends StatefulWidget {
 User loginUser;
 List<Future<Article>> futureArticles;
 bool mainLoadCpt = false;
-
+final mainScaffoldKey = GlobalKey<ScaffoldState>();
 class _MyHomePageState extends State<MyHomePage> {
-  final scaffoldKey = GlobalKey<ScaffoldState>();
-
 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    setFutureArticles(
-        () =>setState(() {
+    setFutureArticles(() => setState(() {
           mainLoadCpt = true;
-        })
-    );
+        }));
     setLoginUser();
 /*    futureArticles = List<Future<Article>>.generate(
         3, (index) => fetchArticle(i: index));*/
   }
+
   @override
   void dispose() {
     // TODO: implement dispose
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: scaffoldKey,
+      key: mainScaffoldKey,
       appBar: AppBar(
         title: Text(widget.title),
       ),
@@ -96,7 +94,6 @@ class _MyHomePageState extends State<MyHomePage> {
         child: SingleChildScrollView(
           padding: EdgeInsets.only(left: 10, right: 50),
           child: Column(
-
             children: [
               Row(
                 children: [
@@ -109,31 +106,41 @@ class _MyHomePageState extends State<MyHomePage> {
                         if (loginUser == null || loginUser.nick == null) {
                           print('login please');
 
-                          scaffoldKey.currentState..hideCurrentSnackBar()..showSnackBar(SnackBar(
-                            content: Text(
-                              'login please',
-                              textAlign: TextAlign.left,
-                            ),
-                            action: SnackBarAction(
-                              label: 'login',
-                              onPressed: () => loginPageGo(scaffoldKey, context),
-                            ),
-                          ));
+                          mainScaffoldKey.currentState
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(SnackBar(
+                              content: Text(
+                                'login please',
+                                textAlign: TextAlign.left,
+                              ),
+                              action: SnackBarAction(
+                                label: 'login',
+                                onPressed: () =>
+                                    loginPageGo(mainScaffoldKey, context,fnc: (){
+                                      mainReturnRefresh();
+                                      setLoginUser();
+                                    }),
+                              ),
+                            ));
                         } else {
                           print('Hello ${loginUser.nick}');
-                          scaffoldKey.currentState..hideCurrentSnackBar()..showSnackBar(SnackBar(
-                            backgroundColor: Colors.lightBlueAccent,
-                            content: Text(
-                              'Hello ${loginUser.nick}',
-                              textAlign: TextAlign.left,
-                              style: TextStyle(color: Colors.indigoAccent),
-                            ),
-                            action: SnackBarAction(
-                              label: 'logout',
-                              textColor: Colors.deepPurple,
-                              onPressed: () => logout(scaffoldKey, context),
-                            ),
-                          ));
+                          mainScaffoldKey.currentState
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(SnackBar(
+                              backgroundColor: Colors.lightBlueAccent,
+                              content: Text(
+                                'Hello ${loginUser.nick}',
+                                textAlign: TextAlign.left,
+                                style: TextStyle(color: Colors.indigoAccent),
+                              ),
+                              action: SnackBarAction(
+                                label: 'logout',
+                                textColor: Colors.deepPurple,
+                                onPressed: () => logout(mainScaffoldKey, context,fnc: (){
+                                    mainReturnRefresh();
+                                }),
+                              ),
+                            ));
                         }
                       },
                     ),
@@ -147,18 +154,14 @@ class _MyHomePageState extends State<MyHomePage> {
                         color: Colors.blueAccent,
                         width: 2,
                       ),
-
                       child: Icon(
                         Icons.refresh,
                         color: Colors.blueAccent,
                       ),
                       onPressed: () {
                         setState(() {
-                          setFutureArticles(
-                              ()=>setState(() {
-                              })
-                          );
-                          setLoginUser();
+                          setFutureArticles(() => setState(() {}));
+                          //setLoginUser();
                         });
                       },
                       shape: RoundedRectangleBorder(
@@ -168,7 +171,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
               ),
-
               loadArticles(mainLoadCpt),
             ],
           ),
@@ -177,7 +179,9 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         tooltip: 'add',
         child: Icon(Icons.add),
-        onPressed: () => writeArticlePageGo(scaffoldKey, context),
+        onPressed: () => writeArticlePageGo(mainScaffoldKey, context,fnc: (){
+          mainReturnRefresh();
+        }),
       ),
     );
   }
@@ -190,9 +194,9 @@ class _MyHomePageState extends State<MyHomePage> {
           fetchUser(value).then((user) {
             loginUser = user;
           });
-        } else {
+        } /*else {
           getRequestVoid('$_baseURL/users/logout');
-        }
+        }*/
       }).whenComplete(() {
         setState(() {
           print('loginUser is null: ${loginUser == null}');
@@ -204,8 +208,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     } catch (e) {}
   }
-
-
 
   loadArticles(bool load) {
     if (!load) {
@@ -228,8 +230,42 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: ListTile(
                       title: Text('${snapshot.data.title}'),
                       subtitle: Text(
-                        '${snapshot.data.creator.userId}',
+                        '${snapshot.data.creator.nick}',
                         textAlign: TextAlign.right,
+                      ),
+                      trailing: Wrap(
+                        children: [
+                          Visibility(
+                            visible: loginUser!=null&&(loginUser.userId == snapshot.data.creator.userId || (loginUser.admin!=null&&loginUser.admin)),
+                            child: SizedBox(
+                              child: IconButton(
+                                padding: EdgeInsets.all(0),
+                                icon: Icon(Icons.edit, color: Colors.blueAccent,),
+                                onPressed: () {},
+                                iconSize: 15,
+                              ),
+                              height: 20,
+                              width: 20,
+                            ),
+                          ),
+                          Visibility(
+                            visible: loginUser!=null&&(loginUser.userId == snapshot.data.creator.userId || (loginUser.admin!=null&&loginUser.admin)),
+                            child: SizedBox(
+                              child: IconButton(
+                                padding: EdgeInsets.all(0),
+                                icon: Icon(Icons.delete, color: Colors.redAccent,),
+                                onPressed: () {
+                                  deleteArticle(snapshot.data.id,fnc: ()=>{
+                                    mainReturnRefresh()
+                                  });
+                                  },
+                                iconSize: 15,
+                              ),
+                              height: 20,
+                              width: 20,
+                            ),
+                          ),
+                        ],
                       ),
                       onTap: () {
                         print('${snapshot.data.content}');
@@ -238,7 +274,10 @@ class _MyHomePageState extends State<MyHomePage> {
                             MaterialPageRoute(
                                 builder: (context) => ArticleDetail(
                                       articleInfo: snapshot.data,
-                                    )));
+                                    )
+                            )).then((value) {
+                              mainReturnRefresh();
+                        });
                       },
                     ),
                     decoration: BoxDecoration(
@@ -259,19 +298,13 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
     );
   }
+  void mainReturnRefresh(){
+    mainScaffoldKey.currentState.setState(() {
+      setFutureArticles(() => setState(() {}));
+    });
+  }
+
+
+
 }
 
-void setFutureArticles(Function fnc) {
-  futureArticles = [];
-  getJSONList('$_baseURL/articles', type: getResponse).then((e) {
-    e.forEach((elt) {
-      futureArticles.add(fetchArticle(elt));
-    });
-    futureArticles = List.from(futureArticles);
-  }).whenComplete(() {
-    fnc();
-    /*setState(() {
-      mainLoadCpt = true;
-    });*/
-  });
-}
