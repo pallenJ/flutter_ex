@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:http_ex/main.dart';
 import 'package:http_ex/methods.dart';
@@ -29,14 +30,21 @@ Future<User> fetchUser(userJSON) async {
 }
 
 class LoginPage extends StatefulWidget {
+  final Function refreshMain;
+
+  const LoginPage({Key key, this.refreshMain}) : super(key: key);
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _LoginPageState createState() => _LoginPageState(refreshMain: this.refreshMain);
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final Function refreshMain;
+
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  _LoginPageState({this.refreshMain});
 
   @override
   Widget build(BuildContext context) {
@@ -94,48 +102,75 @@ class _LoginPageState extends State<LoginPage> {
                       textColor: Colors.white,
                       color: Colors.blue,
                       child: Text('Login'),
-                      onPressed: () {
+                      onPressed: () async{
+
                         postRequest('$_baseURL/users/login', body: {
                           'userId': nameController.text,
                           'password': passwordController.text
-                        }).then((value) {
-                          fetchUser(value).then((user) {
-                            loginUser = user;
-                          });
+                        }).
+                        then((value) async{
+                          ///
+                          if (value == null) {
+
+                            scaffoldKey.currentState
+                              ..hideCurrentSnackBar()
+                              ..showSnackBar(SnackBar(
+                                content:
+                                Text('login fail please check your info'),
+                                action: SnackBarAction(
+                                  label: 'OK',
+                                  onPressed: () {
+                                    scaffoldKey.currentState
+                                        .hideCurrentSnackBar();
+                                  },
+                                ),
+                              ));
+                          } else {
+                            await fetchUser(value).then((user) {
+                              loginUser = user;
+                            });/*.whenComplete(() {
+                              success = true;
+                              Navigator.pop(context);
+                            });*/
+                          }
+                          return value != null;
+                          ///
+                        }).then((flag) {
+                          if(flag) Navigator.pop(context,refreshMain);
+                          if(refreshMain!=null) refreshMain();
                         });
-                        Navigator.pop(context);
                       },
                     )),
                 Container(
                     child: Row(
-                  children: <Widget>[
-                    Text('Does not have account?'),
-                    FlatButton(
-                      textColor: Colors.blue,
-                      child: Text(
-                        'Sign in',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      onPressed: () {
-                        //signup screen
-                        Navigator.pop(context);
-                        signInPageGo(scaffoldKey, context);
-                      },
-                    )
-                  ],
-                  mainAxisAlignment: MainAxisAlignment.center,
-                ))
+                      children: <Widget>[
+                        Text('Does not have account?'),
+                        FlatButton(
+                          textColor: Colors.blue,
+                          child: Text(
+                            'Sign Up',
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          onPressed: () {
+                            //sign up screen
+                            Navigator.pop(context);
+                            registerPageGo(scaffoldKey, context);
+                          },
+                        )
+                      ],
+                      mainAxisAlignment: MainAxisAlignment.center,
+                    ))
               ],
             )));
   }
 }
 
-class SignInPage extends StatefulWidget {
+class RegisterPage extends StatefulWidget {
   @override
-  _SignInPageState createState() => _SignInPageState();
+  _RegisterPageState createState() => _RegisterPageState();
 }
 
-class _SignInPageState extends State<SignInPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -150,12 +185,12 @@ class _SignInPageState extends State<SignInPage> {
   }
 }
 
-void signInPageGo(scaffoldKey, BuildContext context) async {
+void registerPageGo(scaffoldKey, BuildContext context) async {
   if (loginUser == null || loginUser.id == null) {
     await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SignInPage(),
+          builder: (context) => RegisterPage(),
         ));
   } else {
     scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -168,14 +203,14 @@ void signInPageGo(scaffoldKey, BuildContext context) async {
   }
 }
 
-void loginPageGo(scaffoldKey, BuildContext context,{Function fnc}) async {
+void loginPageGo(scaffoldKey, BuildContext context, {Function fnc}) async {
   if (loginUser == null || loginUser.id == null) {
     await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => LoginPage(),
-        )).then((value) => fnc());
-
+        )).then((value) {});
+    if (fnc != null) fnc();
   } else {
     scaffoldKey.currentState.showSnackBar(SnackBar(
       content: Text(
@@ -184,10 +219,10 @@ void loginPageGo(scaffoldKey, BuildContext context,{Function fnc}) async {
       ),
     ));
   }
-
 }
 
-void loginPlease(scaffoldKey, BuildContext context)async{
+void loginPlease(scaffoldKey, BuildContext context, {Function fnc}) async {
+  print('fnc : $fnc');
   scaffoldKey.currentState.showSnackBar(SnackBar(
     content: Text(
       'login please',
@@ -196,11 +231,17 @@ void loginPlease(scaffoldKey, BuildContext context)async{
     action: SnackBarAction(
       label: 'login',
       onPressed: () async {
+        await scaffoldKey.currentState
+            .hideCurrentSnackBar();
         await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => LoginPage(),
-            ));
+            )).then((value) {
+              print(value.runtimeType.toString());
+              if(fnc!=null) fnc();
+        });
+
       },
     ),
   ));
@@ -211,22 +252,6 @@ void logout(scaffoldKey, BuildContext context, {Function fnc}) async {
 
   getRequestVoid('$_baseURL/users/logout', fnc: () async {
     loginUser = null;
-    scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text(
-        'logout',
-        textAlign: TextAlign.left,
-      ),
-      action: SnackBarAction(
-        label: 'login',
-        onPressed: () async {
-          await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => LoginPage(),
-              ));
-        },
-      ),
-    ));
-    fnc();
+    loginPlease(scaffoldKey, context,fnc: fnc);
   });
 }

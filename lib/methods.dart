@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:requests/requests.dart';
 
@@ -33,8 +34,7 @@ Future<List<dynamic>> getJSONList(String url,
   }
 }
 
-Future<dynamic> getJSON(String url,
-    {Function type = getResponse}) async {
+Future<dynamic> getJSON(String url, {Function type = getResponse}) async {
   http.Response response = await type(url);
 
   print('status code ${response.statusCode}');
@@ -45,14 +45,15 @@ Future<dynamic> getJSON(String url,
     throw new Exception('Failed to load');
   }
 }
-Future<dynamic> getRequest(String url,{params}) async{
-  var r = await Requests.get(url,headers: params);
+
+Future<dynamic> getRequest(String url, {params}) async {
+  var r = await Requests.get(url, headers: params);
   r.raiseForStatus();
   return r.json();
 }
 
-void getRequestVoid(String url,{params,Function fnc}) async{
-  var r = await Requests.get(url,headers: params);
+void getRequestVoid(String url, {params, Function fnc}) async {
+  var r = await Requests.get(url, headers: params);
   r.raiseForStatus();
   fnc();
 }
@@ -60,6 +61,9 @@ void getRequestVoid(String url,{params,Function fnc}) async{
 Future<dynamic> postRequest(String url, {body}) async {
   var r = await Requests.post(url,
       body: body, bodyEncoding: RequestBodyEncoding.FormURLEncoded);
+  if(r.hasError){
+    return null;
+  }
   r.raiseForStatus();
   return r.json();
 }
@@ -72,7 +76,40 @@ Future<dynamic> patchRequest(String url, {body}) async {
 }
 
 Future<dynamic> deleteRequest(String url) async {
-  var r = await Requests.delete(url,);
+  var r = await Requests.delete(
+    url,
+  );
   r.raiseForStatus();
   return r.json();
+}
+
+Future<void> asyncConfirmDialog(BuildContext context, String title,
+    {String content, Function okFnc, Function cancelFnc}) async {
+  return showDialog<void>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(content ?? ''),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('CANCEL'),
+            onPressed: () {
+              if(cancelFnc!=null)
+              cancelFnc();
+              Navigator.of(context).pop();
+            },
+          ),
+          FlatButton(
+            child: Text('OK'),
+            onPressed: () {
+              if(okFnc!=null)
+              okFnc();
+              Navigator.of(context).pop();
+            },
+          )
+        ],
+      );
+    },
+  );
 }
