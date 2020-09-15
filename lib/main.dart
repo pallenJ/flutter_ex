@@ -62,9 +62,8 @@ User loginUser;
 List<Future<Article>> futureArticles;
 bool mainLoadCpt = false;
 final mainScaffoldKey = GlobalKey<ScaffoldState>();
+
 class _MyHomePageState extends State<MyHomePage> {
-
-
   @override
   void initState() {
     // TODO: implement initState
@@ -72,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setFutureArticles(() => setState(() {
           mainLoadCpt = true;
         }));
-    setLoginUser();
+    _setLoginUser();
 /*    futureArticles = List<Future<Article>>.generate(
         3, (index) => fetchArticle(i: index));*/
   }
@@ -106,22 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         if (loginUser == null || loginUser.nick == null) {
                           print('login please');
 
-                          mainScaffoldKey.currentState
-                            ..hideCurrentSnackBar()
-                            ..showSnackBar(SnackBar(
-                              content: Text(
-                                'login please',
-                                textAlign: TextAlign.left,
-                              ),
-                              action: SnackBarAction(
-                                label: 'login',
-                                onPressed: () =>
-                                    loginPageGo(mainScaffoldKey, context,fnc: (){
-                                      mainReturnRefresh();
-                                      setLoginUser();
-                                    }),
-                              ),
-                            ));
+                          loginPlease(mainScaffoldKey, context,fnc: _mainReturnRefresh);
                         } else {
                           print('Hello ${loginUser.nick}');
                           mainScaffoldKey.currentState
@@ -136,9 +120,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               action: SnackBarAction(
                                 label: 'logout',
                                 textColor: Colors.deepPurple,
-                                onPressed: () => logout(mainScaffoldKey, context,fnc: (){
-                                    mainReturnRefresh();
-                                }),
+                                onPressed: () {
+                                  logout(mainScaffoldKey, context,fnc: _mainReturnRefresh);
+                                  _mainReturnRefresh();
+                                },
                               ),
                             ));
                         }
@@ -179,14 +164,12 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         tooltip: 'add',
         child: Icon(Icons.add),
-        onPressed: () => writeArticlePageGo(mainScaffoldKey, context,fnc: (){
-          mainReturnRefresh();
-        }),
+        onPressed: () => loginPlease(mainScaffoldKey, context, fnc:_mainReturnRefresh),
       ),
     );
   }
 
-  void setLoginUser() async {
+  void _setLoginUser() async {
     try {
       await getJSON('$_baseURL/users/myInfo').then((value) {
         print('ddd:' + value.toString());
@@ -194,7 +177,8 @@ class _MyHomePageState extends State<MyHomePage> {
           fetchUser(value).then((user) {
             loginUser = user;
           });
-        } /*else {
+        }
+        /*else {
           getRequestVoid('$_baseURL/users/logout');
         }*/
       }).whenComplete(() {
@@ -236,12 +220,25 @@ class _MyHomePageState extends State<MyHomePage> {
                       trailing: Wrap(
                         children: [
                           Visibility(
-                            visible: loginUser!=null&&(loginUser.userId == snapshot.data.creator.userId || (loginUser.admin!=null&&loginUser.admin)),
+                            visible: loginUser != null &&
+                                (loginUser.userId ==
+                                        snapshot.data.creator.userId ||
+                                    (loginUser.admin != null &&
+                                        loginUser.admin)),
                             child: SizedBox(
                               child: IconButton(
                                 padding: EdgeInsets.all(0),
-                                icon: Icon(Icons.edit, color: Colors.blueAccent,),
-                                onPressed: () {},
+                                icon: Icon(
+                                  Icons.edit,
+                                  color: Colors.blueAccent,
+                                ),
+                                onPressed: () {
+                                  editArticlePageGo(
+                                      mainScaffoldKey, context, snapshot.data,
+                                      fnc: () {
+                                    _mainReturnRefresh();
+                                  });
+                                },
                                 iconSize: 15,
                               ),
                               height: 20,
@@ -249,16 +246,25 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ),
                           Visibility(
-                            visible: loginUser!=null&&(loginUser.userId == snapshot.data.creator.userId || (loginUser.admin!=null&&loginUser.admin)),
+                            visible: loginUser != null &&
+                                (loginUser.userId ==
+                                        snapshot.data.creator.userId ||
+                                    (loginUser.admin != null &&
+                                        loginUser.admin)),
                             child: SizedBox(
                               child: IconButton(
                                 padding: EdgeInsets.all(0),
-                                icon: Icon(Icons.delete, color: Colors.redAccent,),
+                                icon: Icon(
+                                  Icons.delete,
+                                  color: Colors.redAccent,
+                                ),
                                 onPressed: () {
-                                  deleteArticle(snapshot.data.id,fnc: ()=>{
-                                    mainReturnRefresh()
+                                  asyncConfirmDialog(context, 'DELETE?',
+                                      okFnc: () {
+                                    deleteArticle(snapshot.data.id,
+                                        fnc: () => {_mainReturnRefresh()});
                                   });
-                                  },
+                                },
                                 iconSize: 15,
                               ),
                               height: 20,
@@ -274,9 +280,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             MaterialPageRoute(
                                 builder: (context) => ArticleDetail(
                                       articleInfo: snapshot.data,
-                                    )
-                            )).then((value) {
-                              mainReturnRefresh();
+                                    ))).then((value) {
+                          _mainReturnRefresh();
                         });
                       },
                     ),
@@ -298,13 +303,11 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
     );
   }
-  void mainReturnRefresh(){
+
+  void _mainReturnRefresh() {
+    print('main refresh');
     mainScaffoldKey.currentState.setState(() {
       setFutureArticles(() => setState(() {}));
     });
   }
-
-
-
 }
-
