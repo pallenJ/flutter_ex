@@ -55,6 +55,7 @@ Future<dynamic> getRequest(String url, {params}) async {
 void getRequestVoid(String url, {params, Function fnc}) async {
   var r = await Requests.get(url, headers: params);
   r.raiseForStatus();
+  if(fnc!=null)
   fnc();
 }
 
