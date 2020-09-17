@@ -52,7 +52,7 @@ class ArticleDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     isMyArticle = loginUser != null &&
-        (loginUser.userId == articleInfo.creator.userId || loginUser.admin);
+        (loginUser.userId == articleInfo.creator.userId || (loginUser.admin!=null&&loginUser.admin));
     if (articleInfo == null)
       return Container(
         child: Center(
@@ -213,7 +213,7 @@ class _ArticleWriteState extends State<ArticleWrite> {
                     right: 10,
                   ),
                   child: OutlineButton(
-                    textColor: Colors.lightBlue,
+                    textColor: Theme.of(context).primaryColor,
                     borderSide: BorderSide.none,
                     child: Text('CANCEL'),
                     onPressed: () {
@@ -226,8 +226,8 @@ class _ArticleWriteState extends State<ArticleWrite> {
                     right: 10,
                   ),
                   child: RaisedButton(
-                    textColor: Colors.white,
-                    color: Colors.lightBlue,
+                    textColor: Theme.of(context).canvasColor,
+                    color: Theme.of(context).primaryColor,
                     child: Text('ADD'),
                     onPressed: () async {
                       if (_titleController.text == null ||
@@ -398,7 +398,7 @@ void writeArticlePageGo(scaffoldKey, BuildContext context,
 
 void setFutureArticles(Function fnc) {
   futureArticles = [];
-  getJSONList('$_baseURL/articles', type: getResponse).then((e) {
+  getJSONList('$_baseURL/$pageUrl', type: getResponse).then((e) {
     e.forEach((elt) {
       futureArticles.add(fetchArticle(elt));
     });

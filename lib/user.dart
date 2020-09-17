@@ -7,17 +7,17 @@ final String _baseURL = 'http://192.168.1.56:8000';
 
 class User {
   final bool admin;
-  final createAt;
+  final createdAt;
   final id; //_id
   final String userId;
   final String nick;
 
-  User({this.admin, this.createAt, this.id, this.userId, this.nick});
+  User({this.admin, this.createdAt, this.id, this.userId, this.nick});
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       admin: json['admin'],
-      createAt: json['createAt'],
+      createdAt: json['createdAt'],
       id: json['_id'],
       userId: json['userId'],
       nick: json['nick'],
@@ -63,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Text(
                       'Login',
                       style: TextStyle(
-                          color: Colors.blue,
+                          color: Theme.of(context).primaryColor,
                           fontWeight: FontWeight.w500,
                           fontSize: 30),
                     )),
@@ -92,15 +92,15 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: () {
                     //forgot password screen
                   },
-                  textColor: Colors.blue,
+                  textColor: Theme.of(context).primaryColor,
                   child: Text('Forgot Password'),
                 ),
                 Container(
                     height: 50,
                     padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                     child: RaisedButton(
-                      textColor: Colors.white,
-                      color: Colors.blue,
+                      textColor: Theme.of(context).canvasColor,
+                      color: Theme.of(context).primaryColor,
                       child: Text('Login'),
                       onPressed: () async{
 
@@ -146,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                       children: <Widget>[
                         Text('Does not have account?'),
                         FlatButton(
-                          textColor: Colors.blue,
+                          textColor: Theme.of(context).primaryColor,
                           child: Text(
                             'Sign Up',
                             style: TextStyle(fontSize: 20),
