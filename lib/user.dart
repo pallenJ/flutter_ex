@@ -252,6 +252,7 @@ void logout(scaffoldKey, BuildContext context, {Function fnc}) async {
 
   getRequestVoid('$_baseURL/users/logout', fnc: () async {
     loginUser = null;
+    if(fnc!=null)
     loginPlease(scaffoldKey, context,fnc: fnc);
   });
 }

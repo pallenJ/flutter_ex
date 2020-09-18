@@ -59,7 +59,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _prevIdx = 0;
   int _selectedIdx = 0;
   Widget _bodyWidget = Container();
   bool _forTestSwitch = false;
@@ -78,10 +77,12 @@ class _MyHomePageState extends State<MyHomePage> {
 /*    futureArticles = List<Future<Article>>.generate(
         3, (index) => fetchArticle(i: index));*/
   }
-
+  
+  
   @override
   void dispose() {
     // TODO: implement dispose
+    //logout(mainScaffoldKey, context);
     super.dispose();
   }
 
@@ -137,7 +138,6 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: Icon(Icons.settings), title: Text('setting')),
         ],
         onTap: (selectIdx) => setState(() {
-          _prevIdx = _selectedIdx;
           _selectedIdx = selectIdx;
           setBody();
         }),
@@ -398,6 +398,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         MaterialPageRoute(
                             builder: (context) => ArticleDetail(
                                   articleInfo: snapshot.data,
+                                  refreshFNC: _mainReturnRefresh,
                                 ))).then((value) {
                       _mainReturnRefresh();
                     });

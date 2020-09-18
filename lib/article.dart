@@ -16,12 +16,12 @@ class Article {
 
   Article(
       {this.createdAt,
-        this.updatedAt,
-        this.deletedAt,
-        this.id,
-        this.title,
-        this.content,
-        this.creator});
+      this.updatedAt,
+      this.deletedAt,
+      this.id,
+      this.title,
+      this.content,
+      this.creator});
 
   factory Article.fromJson(Map<String, dynamic> json) {
     print(json['_creator']);
@@ -41,7 +41,6 @@ Future<Article> fetchArticle(articleJSON) async {
   return Article.fromJson(articleJSON);
 }
 
-
 class ArticleDetail extends StatelessWidget {
   final Article articleInfo;
   final Function refreshFNC;
@@ -52,7 +51,8 @@ class ArticleDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     isMyArticle = loginUser != null &&
-        (loginUser.userId == articleInfo.creator.userId || (loginUser.admin!=null&&loginUser.admin));
+        (loginUser.userId == articleInfo.creator.userId ||
+            (loginUser.admin != null && loginUser.admin));
     if (articleInfo == null)
       return Container(
         child: Center(
@@ -69,7 +69,7 @@ class ArticleDetail extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              color: Colors.blue,
+              color: Theme.of(context).accentColor,
               child: Text(
                 '  ' + articleInfo.title,
                 style: TextStyle(
@@ -80,14 +80,14 @@ class ArticleDetail extends StatelessWidget {
               ),
             ),
             Container(
-              color: Colors.blue,
+              color: Theme.of(context).accentColor,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
                     articleInfo.creator.nick,
                     style: TextStyle(
-                      color: Colors.indigo,
+                      color: Theme.of(context).backgroundColor,
                       fontWeight: FontWeight.normal,
                       fontSize: 20,
                     ),
@@ -96,7 +96,7 @@ class ArticleDetail extends StatelessWidget {
                   Text(
                     'created at ${DateTime.parse(articleInfo.createdAt).toString()}',
                     style: TextStyle(
-                      color: Colors.tealAccent,
+                      color: Theme.of(context).primaryColorDark,
                       fontWeight: FontWeight.normal,
                       fontSize: 13,
                     ),
@@ -107,7 +107,7 @@ class ArticleDetail extends StatelessWidget {
                     child: Text(
                       'updated at ${DateTime.parse(articleInfo.updatedAt).toString()}',
                       style: TextStyle(
-                        color: Colors.tealAccent,
+                        color: Theme.of(context).primaryColorDark,
                         fontWeight: FontWeight.normal,
                         fontSize: 13,
                       ),
@@ -319,7 +319,7 @@ class _ArticleEditState extends State<ArticleEdit> {
                     right: 10,
                   ),
                   child: OutlineButton(
-                    textColor: Colors.lightBlue,
+                    textTheme: ButtonTextTheme.accent,
                     borderSide: BorderSide.none,
                     child: Text('CANCEL'),
                     onPressed: () {
@@ -332,9 +332,12 @@ class _ArticleEditState extends State<ArticleEdit> {
                     right: 10,
                   ),
                   child: RaisedButton(
-                    textColor: Colors.white,
-                    color: Colors.lightBlue,
-                    child: Text('EDIT'),
+                    color: Theme.of(context).accentColor,
+                    child: Text(
+                      'EDIT',
+                      style:
+                          TextStyle(color: Theme.of(context).backgroundColor),
+                    ),
                     onPressed: () async {
                       if (_titleController.text == null ||
                           _titleController.text.length == 0) {
@@ -416,4 +419,3 @@ void deleteArticle(int _id, {Function fnc}) async {
   print(deleteRS);
   if (fnc != null) fnc();
 }
-
